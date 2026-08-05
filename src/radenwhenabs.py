@@ -39,7 +39,7 @@ ridf
 
 # +
 nparty=3
-rsizes=(6.3, 12.2 ,7.8)
+rsizes=(4.3, 12.2 ,7.8)
 def mkraad(genridif, rdid,straal, posx,posy):
     rv=genridif.copy()
     rv['Rdidx']= "Gem"+ (str(rdid))
@@ -62,7 +62,7 @@ def mkraad(genridif, rdid,straal, posx,posy):
     rv['party'] = (np.digitize(rv['ang'],plevs).astype(str) )
     return rv
 
-allraad=pd.concat([mkraad(ridf,i+1,rsizes[i],0,i*8+8) for i in range(0,3) ])
+allraad=pd.concat([mkraad(ridf,i+1,rsizes[i],0,i*2*maxraadsqrt+maxraadsqrt) for i in range(0,3) ])
 allraad
 
 
@@ -79,7 +79,8 @@ def mkcollege(rd):
     colle['Colsel']= (colle['maxpart']==colle['inraad'] ) | \
        ( (colle['maxpart'] -1 < colle['raadsgrootte'] /2  ) & ( colle['minpart']!=colle['inraad'] ))
     colle['raadsleden'] =colle['inraad'] 
-    colle['inraad'] =2-((colle['maxpart']< colle['raadsgrootte'] /2  ) .astype(int)  )
+    colle['Lidsiz'] =2-((colle['maxpart']< colle['raadsgrootte'] /2  ) .astype(int)  )
+    #colle['Lidsiz'] *=2
     colle['Lidcol0'] +=8
     colle['Lidcol1'] +=2
     colle['Rdcol0'] +=8
@@ -90,28 +91,35 @@ def mkcollege(rd):
 allcoll=mkcollege(allraad)
 allcoll
 
+regiotot1= allraad.groupby(['party'])["inraad"].agg("count").reset_index()
+regiotot2= allcoll.groupby(['party'])["inraad"].agg("sum").reset_index().rename(columns={"inraad":"incollege"})
+regiotot=regiotot1.merge(regiotot2).drop(columns="party")
+str(regiotot)
+
 
 # +
-def plotrd(rd,colle):    
+def plotrd(raad,colle,regiostats):    
     fig, ax = plt.subplots(figsize=(6, 4))
+    rd= pd.concat([raad,colle])
 #    sns.scatterplot(x="Rdcol0", y="Rdcol1", hue="Rdidx", size="Rstri",  alpha=.1,  data=rd,ax=ax)
     sns.scatterplot(x="Lidcol0", y="Lidcol1", hue="party", size="Lidsiz",  alpha=.8, palette="muted", data=rd,ax=ax)
 #    sns.scatterplot(x="Rdcol0", y="Rdcol1", hue="Rdidx", size="Rstri",  alpha=.1,  data=colle,ax=ax)
-    sns.scatterplot(x="Lidcol0", y="Lidcol1", hue="party", size="Lidsiz",  alpha=.8, palette="muted", data=colle,ax=ax)
+#    sns.scatterplot(x="Lidcol0", y="Lidcol1", hue="party", size="Lidsiz",  alpha=.8, palette="muted", data=colle,ax=ax)
     (abx,aby)=(16,14)
     (dbx,dby)=(22,14)
+    repcol='grey'
     for index, row in colle.iterrows(): 
         (cx,cy)=(row['Rdcol0'] , row['Rdcol1'] )
-        ax.annotate("",xy=(cx-8,cy-2),xytext=(cx, cy), 
-                    arrowprops=dict(arrowstyle="<-"))
-        ax.annotate("",xytext=(abx,aby),xy=(cx, cy), 
-                    arrowprops=dict(arrowstyle="<-"))
-        ax.annotate("%s"%(row['Rdidx']),xy=(cx-4,cy-1),
-                   horizontalalignment='center',
+        ax.annotate("",xy=(cx-8,cy-2),xytext=(cx-2, cy-1), 
+                    arrowprops=dict(arrowstyle="<-",color=repcol))
+        ax.annotate("",xytext=(abx-1,aby),xy=(cx+2, cy), 
+                    arrowprops=dict(arrowstyle="<-",color=repcol))
+        ax.annotate("%s"%(row['Rdidx']),xy=(cx-8,cy+2),
+                   horizontalalignment='right',
                    verticalalignment='top',alpha=0.5)
-        ax.annotate("AB lid %s"%(row['Rdidx']),xy=(cx,cy),
-                   horizontalalignment='left',
-                   verticalalignment='bottom',alpha=0.5)
+#        ax.annotate("AB lid %s"%(row['Rdidx']),xy=(cx+3,cy),
+#                   horizontalalignment='left',
+#                   verticalalignment='bottom',alpha=0.5)
         ax.annotate("",xy=(cx-8,cy-2),xytext=(abx, aby), 
                     arrowprops=dict(arrowstyle="<-",color='green'))
         radius = row["Rstri"]*8+20
@@ -133,10 +141,19 @@ def plotrd(rd,colle):
                    horizontalalignment='center',
                    verticalalignment='center',alpha=0.5)
     ax.annotate("",xytext=(dbx,dby),xy=(abx, aby), 
-                    arrowprops=dict(arrowstyle="<-"))
+                    arrowprops=dict(arrowstyle="<-",color=repcol))
+    ax.annotate("Regio totaal\n"+str(regiostats),xy=(dbx-3,30),
+                   horizontalalignment='left',
+                   verticalalignment='top',alpha=0.5)
+    radius = 20
+    ax.plot(abx,aby, 'o',
+            ms=radius , mec='yellow', mfc='none')
+    radius = 10
+    ax.plot(dbx,dby, 'o',
+            ms=radius , mec='yellow', mfc='none')
     ax.set_aspect(1.0)
-    ax.set_ylim(bottom=0)
-    ax.set_xlim(right=28)
+    ax.set_ylim(bottom=0,top=32)
+    ax.set_xlim(right=35)
     ax.set_ylabel("Deelnemende gemeente")
     ax.set_xlabel("Vertegenwoordingingslaag")
     if 1==1:
@@ -147,14 +164,15 @@ def plotrd(rd,colle):
         top=False,         # ticks along the top edge are off
         labelleft=False,    
         labelbottom=False) # labels along the bottom edge are off
-        ax.get_legend().remove()        
+        #ax.get_legend().remove()        
+        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     else:
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     savtag="01"
     figname = "../output/example_cvp_"+savtag+"_"+'m1.svg';
     plt.savefig(figname, bbox_inches="tight")
 
-plotrd(allraad,allcoll)      
+plotrd(allraad,allcoll,regiotot)      
 # -
 
 
