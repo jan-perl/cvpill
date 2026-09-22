@@ -181,19 +181,19 @@ plotrd(allraad,allcoll,regiotot)
 #let op: lijkt deels spitsstrook RWS01_MONIBAS_0270vwa0678ra	a27	678	r	af
 #67.5 = zoutopslag na oprit 28 , 69.1 = Euretco, r = richting noord (Euretco vanaf afslag 28)
 
-some_string="""ID	xax	tax	altnr	wie	wat
-L10	0	0		DB-GR	stuk voor zienswijze
-L20	2	1		COLL-GEM	concept zienswijze 
-L30	2	2		COLL-GEM	vaststellen concept zienswijze 
-L40	4	3		CVPX-GEM	amendementen zienswijze 
-L50	5	4		RPF	zienswijzes en amendementen vergelijken
-L60	4	5		CVP	consolideren RPF
-L70	3	6		RTG-GEM	doorspreken zienswijzes RTG
-L80	3	8		RAAD-GEM	zienswijze aangenomen raad
-L90	0	12		DB-GR	deadline zienswijze
-L40	4	-1	L40	CVPX-GEM	kern beoordeelpunten
-L42	6	2.5	L50	RR-OVGEM	amendementen zienswijzes
-L72	6	10	L90	RR-OVGEM	zienswijzes"""
+some_string="""ID	xax	tax	altnr	wie	wielang	wat
+L10	0	0		DB-GR	Dagelijks Bestuur Gemeenschappelijke regeling	stuk voor zienswijze
+L20	2	1		COLL-DN	College Deelnemer	concept zienswijze 
+L30	2	2		COLL-DN	College Deelnemer	vaststellen concept zienswijze 
+L40	4	3		CVPX-DN	CVP expert Deelnemer	amendementen zienswijze 
+L50	6	4		RPF	Raadsplatform	zienswijzes en amendementen vergelijken
+L60	4	5		CVP-DN	CVP geheel	consolideren RPF
+L70	3	6		RTG-DN	RTG Deelnemer	doorspreken zienswijzes RTG
+L80	3	8		RAAD-DN	Gemeenteraad Deelnemer	zienswijze aangenomen raad
+L90	1	12		AB-GR	Algemeen Bestuur Gemeenschappeliijke regeling (met alle Wethouders)	verwerken zienswijzes
+L40	4	-1	L40	CVPX-GEM		kern beoordeelpunten
+L42	8	2.5	L50	RR-ODN	Raadsrapporteurs Overige deelnemers	amendementen zienswijzes
+L72	8	10	L90	RR-ODN	Raadsrapporteurs Overige deelnemers	zienswijzes"""
 #read CSV string into pandas DataFrame
 termijnendb= pd.read_csv(io.StringIO(some_string), sep="\t")
 termijnendb
