@@ -176,3 +176,82 @@ plotrd(allraad,allcoll,regiotot)
 # -
 
 
+
+# +
+#let op: lijkt deels spitsstrook RWS01_MONIBAS_0270vwa0678ra	a27	678	r	af
+#67.5 = zoutopslag na oprit 28 , 69.1 = Euretco, r = richting noord (Euretco vanaf afslag 28)
+
+some_string="""ID	xax	tax	altnr	wie	wat
+L10	0	0		DB-GR	stuk voor zienswijze
+L20	2	1		COLL-GEM	concept zienswijze 
+L30	2	2		COLL-GEM	vaststellen concept zienswijze 
+L40	4	3		CVPX-GEM	amendementen zienswijze 
+L50	5	4		RPF	zienswijzes en amendementen vergelijken
+L60	4	5		CVP	consolideren RPF
+L70	3	6		RTG-GEM	doorspreken zienswijzes RTG
+L80	3	8		RAAD-GEM	zienswijze aangenomen raad
+L90	0	12		DB-GR	deadline zienswijze
+L40	4	-1	L40	CVPX-GEM	kern beoordeelpunten
+L42	6	2.5	L50	RR-OVGEM	amendementen zienswijzes
+L72	6	10	L90	RR-OVGEM	zienswijzes"""
+#read CSV string into pandas DataFrame
+termijnendb= pd.read_csv(io.StringIO(some_string), sep="\t")
+termijnendb
+
+
+# +
+def plotterm(termdb):    
+    fig, ax = plt.subplots(figsize=(6, 4))
+    rd= termdb
+#    sns.scatterplot(x="Rdcol0", y="Rdcol1", hue="Rdidx", size="Rstri",  alpha=.1,  data=rd,ax=ax)
+    sns.scatterplot(data=rd,x="xax", y="tax",ax=ax)
+#    sns.scatterplot(x="Rdcol0", y="Rdcol1", hue="Rdidx", size="Rstri",  alpha=.1,  data=colle,ax=ax)
+#    sns.scatterplot(x="Lidcol0", y="Lidcol1", hue="party", size="Lidsiz",  alpha=.8, palette="muted", data=colle,ax=ax)
+    (px,py)=(0,0)
+    opos=dict()
+    repcol='grey'
+    for index, row in rd.iterrows(): 
+        #print(row)
+        (cx,cy)=(row['xax'] , row['tax'] )
+        if pd.isna(row['altnr'] ):
+            ax.annotate("",xy=(px,py),xytext=(cx, cy), 
+                    arrowprops=dict(arrowstyle="<-",color=repcol))
+        else:
+            (lx,ly)=(opos["X"+row['altnr']],opos["Y"+row['altnr']])
+            ax.annotate("",xy=(cx,cy),xytext=(lx, ly), 
+                    arrowprops=dict(arrowstyle="<-",color=repcol))          
+        if 1==1:
+            ax.text(cx+0.5,cy,row['wat'], ha='left', va='center',alpha=0.5,size =6,
+                    bbox=dict(boxstyle="Square,pad=0.3",
+                      fc="yellow", ec="yellow", lw=2) )
+            ax.text(cx-0.5,cy,row['wie'], ha='right', va='center',alpha=0.8,size =6,
+                   bbox=dict(boxstyle="Square,pad=0.3",
+                      fc="lightblue", ec="steelblue", lw=2))
+        (opos["X"+row['ID']],opos["Y"+row['ID']])=(cx,cy)
+        (px,py)=(cx,cy)
+    #ax.set_aspect(0.5)
+    #ax.set_ylim(bottom=0,top=12)
+    ax.set_ylim(bottom=13,top=-2)
+    ax.set_xlim(left=-2,right=12)
+    ax.set_ylabel("Tijd (weken)")
+    ax.set_xlabel("actiehouder")
+    if 1==1:
+        plt.tick_params(
+        axis='both',          # changes apply to both axes
+        which='both',      # both major and minor ticks are affected
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+#        labelleft=False,    
+        labelbottom=False) # labels along the bottom edge are off
+        #ax.get_legend().remove()        
+        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    else:
+        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    savtag="01"
+    figname = "../output/termijn_cvp_"+savtag+"_"+'m1.svg';
+    plt.savefig(figname, bbox_inches="tight")
+
+plotterm(termijnendb)   
+# -
+
+
